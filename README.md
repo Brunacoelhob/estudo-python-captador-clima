@@ -89,10 +89,4 @@ Licença
 Este projeto está sob a licença MIT. Sinta-se livre para usar, modificar e compartilhar.
 
 
----
-
-Se quiser, posso gerar esse conteúdo como **arquivo `.md` pronto para upload**.
-
-Agora, vamos para o **passo 3: criar o fluxograma**? Quer que eu gere o diagrama visual para você?
-
 
