@@ -1,68 +1,70 @@
-#Captação de Temperatura - São Paulo
-Este projeto tem como objetivo automatizar a coleta de dados de temperatura e umidade do ar da
-cidade de São Paulo - SP, utilizando a API da OpenWeather e salvando os dados localmente com
-interface gráfica e visual moderna.
+# Captador de Clima (OpenWeather + Excel)
 
----
+[![CI](https://github.com/Brunacoelhob/estudo-python-captador-clima/actions/workflows/ci.yml/badge.svg)](https://github.com/Brunacoelhob/estudo-python-captador-clima/actions/workflows/ci.yml)
+![Python](https://img.shields.io/badge/python-3.10%2B-blue)
+![License](https://img.shields.io/badge/license-MIT-blue)
+
+Aplicativo de janela (Tkinter) que consulta a **temperatura e a umidade** de uma cidade (padrão: São Paulo) na API da OpenWeather, guarda o histórico numa planilha Excel e mostra tabela, gráfico e **previsão de 5 dias**.
 
 ## Funcionalidades
-- Tela de login inicial com entrada de nome e e-mail
-- Obter dados de temperatura atual e umidade do ar
-- Salvar os dados automaticamente em uma planilha Excel (dados_clima.xlsx)
-- Visualizar o histórico em uma tabela com interface gráfica
-- Gerar gráfico com a variação de temperatura e umidade (últimos 10 registros)
-- Exportar a planilha e abrir diretamente no Excel
-- Botões estilizados e responsivos
-- Design unificado e intuitivo
-- Integração dos dados com o nome e e-mail do usuário que fez a consulta
 
----
+- Login simples (nome e e-mail, validados) para identificar quem fez cada consulta
+- **Consultar agora**: temperatura e umidade atuais, gravadas na planilha
+- **Previsão de 5 dias** (mínima/máxima e umidade média por dia, com dados reais da API)
+- **Histórico** das últimas 10 consultas e **gráfico** de variação
+- Abrir a planilha no programa padrão (Windows, macOS e Linux)
 
-## Tecnologias Utilizadas
-- Python 3.10+
-- Tkinter (interface gráfica)
-- OpenWeather API (coleta dos dados meteorológicos)
-- openpyxl (leitura e escrita em planilhas Excel)
-- matplotlib (geração de gráficos)
-- os, datetime, requests
+## Como executar
 
----
+Requer Python 3.10+ (com Tkinter, que já vem com o instalador oficial).
 
-# Pré-requisitos
-Antes de rodar o projeto, você precisa ter:
-- Python 3.10 ou superior instalado
-- pip (gerenciador de pacotes Python)
-Instale as bibliotecas com o comando:
-pip install requests openpyxl matplotlib
+```bash
+pip install -r requirements.txt
+cp .env.example .env      # coloque sua chave em OPENWEATHER_API_KEY
+python -m captador
+```
 
-Como executar o projeto
-1. Clone o repositório ou baixe os arquivos do projeto
-2. Execute o arquivo main.py
-3. Preencha seu nome e e-mail
-4. Use os botões para:
-- Buscar previsão
-- Visualizar dados
-- Gerar gráfico
-- Abrir planilha
-5. Visualize os dados e gráfico em tempo real!
+Chave gratuita em https://openweathermap.org/api. Opcionais no `.env`: `CLIMA_CIDADE` (ex.: `Recife,BR`) e `CLIMA_PLANILHA`.
 
-Organização do Projeto
-main.py - Arquivo principal da aplicação
-dados_clima.xlsx - Planilha gerada automaticamente
-README.md - Documentação do projeto
-imagens/ - Capturas da interface (opcional)
-docs/ - Fluxograma, roteiro de apresentação (opcional)
+## Arquitetura
 
-Melhorias Futuras
-- Envio automático da planilha por e-mail
-- Escolher cidade para consulta além de São Paulo
-- Armazenamento dos dados em banco de dados (SQLite ou PostgreSQL)
-- Dashboard web com gráficos em tempo real
+```
+captador/
+├── config.py        configuração (ambiente/.env); a chave nunca fica no código
+├── clima.py         cliente da API: timeout, erros claros, previsão agrupada por dia
+├── armazenamento.py planilha Excel: validação do usuário, gravação segura, últimos N
+├── grafico.py       dados do gráfico (matplotlib só é carregado ao abrir o gráfico)
+├── interface.py     telas Tkinter (sem regra de negócio)
+└── __main__.py      ponto de entrada
+tests/               27 testes (sem rede e sem interface gráfica)
+```
 
+## O que foi corrigido em relação à primeira versão
 
-Autor
-Desenvolvido por Bruna Coelho
-Projeto acadêmico | FECAF | ADS - 2025
-GitHub: https://github.com/Brunacoelhoh
-API
-OpenWeather: https://openweathermap.org/api
+| Antes | Agora |
+|---|---|
+| **Chave da API escrita no código** (e publicada no GitHub) | Lida de `OPENWEATHER_API_KEY`; não aparece em logs/erros |
+| "Previsão" com valores **inventados** (28°C, 23°C…) na tela | Previsão real de 5 dias da API |
+| Requisição sem timeout nem checagem de status | Timeout, mensagens para 401/404/429/erro de rede |
+| Planilha com dados pessoais versionada | `*.xlsx` no `.gitignore` |
+| Nome digitado como `=HYPERLINK(...)` virava **fórmula** no Excel | "Injeção de fórmula" neutralizada |
+| Planilha podia corromper se o programa fechasse ao salvar | Gravação atômica (arquivo temporário + troca) |
+| `os.startfile` (só Windows) | Funciona em Windows, macOS e Linux |
+| Tudo em um arquivo com variáveis globais | Pacote em módulos, testável |
+| Sem validação de e-mail/nome, sem testes, sem CI | Validação, 27 testes e CI (ruff + pytest) |
+
+## Privacidade
+
+Nome e e-mail ficam **apenas na planilha local**, ao lado de cada consulta. Nada é enviado a terceiros além do pedido de clima (que contém só a cidade e a chave da API).
+
+## Testes
+
+```bash
+pip install -r requirements-dev.txt
+pytest
+ruff check . && ruff format --check .
+```
+
+## Licença
+
+[MIT](LICENSE)
